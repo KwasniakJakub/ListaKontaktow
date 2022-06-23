@@ -1,0 +1,122 @@
+﻿@page "/Kontakty"
+
+@using BibliotekaDostepuDoDanych
+@using BibliotekaDostepuDoDanych.Modele
+@using netPcListaKontaktow.Modele
+
+@inject IKontaktyDane _bazaDanych
+
+<h3>Kontakty</h3>
+
+
+<div id="FormularzDodawania">
+<EditForm Model="@nowyKontakt" OnValidSubmit="@DodajEdytujKontakt">
+    <h4>Dodaj/Edytuj Kontakt</h4>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="imie" placeholder="Imię" @bind-Value="nowyKontakt.Imie" /> <br>
+    <InputText id="nazwisko" placeholder="Nazwisko" @bind-Value="nowyKontakt.Nazwisko" /><br>
+    <InputText id="email" placeholder="Adres E-Mail" @bind-Value="nowyKontakt.AdresEmail" /><br>
+    <InputText id="kategoria" placeholder="Kategoria" @bind-Value="nowyKontakt.Kategoria" /><br>
+    <InputText id="numerTelefonu" placeholder="Numer Telefonu" @bind-Value="nowyKontakt.NumerTelefonu" /><br>
+    <InputDate id="dataUrodzenia" @bind-Value="nowyKontakt.DataUrodzenia" /><br>
+
+    <button type="submit" class="btn btn-primary">Zapisz</button>
+</EditForm>
+</div>
+@if (kontakty == null)
+{
+    <p><em>Ładowanie kontaktów...</em></p>
+}
+else
+{
+    <h4>Lista kontaktów:</h4>
+    <div id="TabelaKontaktów">
+        <table class="tabele table-striped">
+            <thead>
+                <tr>
+                    <th>Imię</th>
+                    <th>Nazwisko</th>
+                    <th>Adres E-Mail</th>
+                    <th>Kategoria</th>
+                    <th>Numer Telefonu</th>
+                    <th>Data Urodzenia</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var kontakt in kontakty)
+                {
+                    <tr>
+                        <td>@kontakt.Imie</td>
+                        <td>@kontakt.Nazwisko</td>
+                        <td>@kontakt.AdresEmail</td>
+                        <td>@kontakt.Kategoria</td>
+                        <td>@kontakt.NumerTelefonu</td>
+                        <td>@kontakt.DataUrodzenia</td>
+                        <td><button class="btn btn-dark" @onclick="()=>View(kontakt)">Edytuj</button></td>
+                        <td><button class="btn btn-danger" @onclick="()=>UsunKontakt(kontakt)">Usuń</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<ModelKontaktu> kontakty;
+
+    private ModelPokazaniaKontaku nowyKontakt = new ModelPokazaniaKontaku();
+
+    protected override async Task OnInitializedAsync()
+    {
+        kontakty = await _bazaDanych.GetKontakty();
+    }
+
+    private async Task View(ModelKontaktu kontakt)
+    {
+        nowyKontakt = new ModelPokazaniaKontaku()
+            {
+                ID = kontakt.KontaktId,
+                Imie = kontakt.Imie.Trim(),
+                Nazwisko = kontakt.Nazwisko.Trim(),
+                AdresEmail = kontakt.AdresEmail.Trim(),
+                Kategoria = kontakt.Kategoria.Trim(),
+                NumerTelefonu = kontakt.NumerTelefonu.Trim(),
+                DataUrodzenia = kontakt.DataUrodzenia
+    };
+    }
+
+    private async Task DodajEdytujKontakt()
+    {
+        ModelKontaktu kon = new ModelKontaktu
+            {
+                KontaktId = nowyKontakt.ID,
+                Imie = nowyKontakt.Imie,
+                Nazwisko = nowyKontakt.Nazwisko,
+                AdresEmail = nowyKontakt.AdresEmail,
+                Kategoria = nowyKontakt.Kategoria,
+                NumerTelefonu = nowyKontakt.NumerTelefonu,
+                DataUrodzenia = nowyKontakt.DataUrodzenia,
+            };
+
+        if (kon.KontaktId == 0)
+        {
+            await _bazaDanych.DodajKontakt(kon); 
+        } 
+        else
+        {
+            await _bazaDanych.EdytujKontakt(kon);
+        }
+
+        nowyKontakt = new ModelPokazaniaKontaku();
+        kontakty = await _bazaDanych.GetKontakty();
+    }
+
+    private async Task UsunKontakt(ModelKontaktu Kontakt)
+    {
+        await _bazaDanych.UsunKontakt(Kontakt);
+        kontakty = await _bazaDanych.GetKontakty();
+    }
+}

@@ -1,0 +1,56 @@
+﻿@page "/"
+@using BibliotekaDostepuDoDanych
+@using BibliotekaDostepuDoDanych.Modele
+@layout LogowanieLayout
+@inject IDaneLogowania _bazaDanychLogowanie
+@inject NavigationManager managerNawigacji
+
+<div class="wrapper fadeInDown">
+  <div id="formContent">
+    <!-- Tabs Titles -->
+
+    <!-- ikona -->
+   @* <div class="fadeIn first">
+      <img src="" id="icon" alt="User Icon" />
+    </div>*@
+
+    <!-- Formularz logowania -->
+    <EditForm Model="@model" OnValidSubmit="Submit">
+      <input type="text" id="login" class="fadeIn second" @bind-value="model.Login" name="login" placeholder="Login">
+      <input type="password" id="password" class="fadeIn third" @bind-value="model.Haslo" name="login" placeholder="Hasło">
+      <input type="submit" class="fadeIn fourth" @onclick="OnClick" value="Zaloguj">
+    </EditForm>
+
+    <!-- Przypominanie hasła -->
+    <div id="formFooter">
+        @bladLoginuLubHasla
+      <a class="underlineHover" href="#">Zapomniałeś hasła?</a>
+    </div>
+
+  </div>
+</div>
+
+@code{
+    ModelLogowania model = new ModelLogowania();
+    static List<ModelLogowania> listaUzytkownikow = new List<ModelLogowania>();
+    string bladLoginuLubHasla;
+
+
+    private async void OnClick()
+    {
+ 
+        if ((await _bazaDanychLogowanie.Login(model.Login, model.Haslo)).Count > 0)
+        {
+            managerNawigacji.NavigateTo("/Kontakty");
+        }
+        else
+        {
+            bladLoginuLubHasla = "Niepoprawny E-mail lub Hasło";
+        }
+    }
+
+
+    private void Submit()
+    {
+    }
+}
